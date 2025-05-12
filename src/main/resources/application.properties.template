@@ -1,0 +1,9 @@
+# API Configuration
+gemini.api.key=YOUR_API_KEY_HERE
+gemini.api.url=https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+
+# File Paths
+guidelines.path=src/main/resources/guidelines.md
+
+# Logging
+logging.file.path=logs/code-reviewer.log 
