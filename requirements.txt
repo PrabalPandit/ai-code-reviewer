@@ -1,0 +1,15 @@
+astroid>=3.0.0
+pylint>=3.0.0
+bandit>=1.7.0
+safety>=2.3.0
+gitpython>=3.1.0
+openai>=1.0.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+rich>=13.0.0
+typer>=0.9.0
+google-generativeai>=0.3.0
+pytest>=7.0.0
+black>=23.0.0
+isort>=5.0.0
+mypy>=1.0.0

@@ -40,4 +40,121 @@ src/main/resources/application.properties
 
 # OS specific files
 .DS_Store
-Thumbs.db 
+Thumbs.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sqlite
+logs/
+reviews/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.*
+
+# Review outputs
+reviews/
+**/reviews/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+coverage.xml
+*.cover
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Local development
+*.local
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+
+# Security
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*.keystore
+*.jks
+*.truststore
+*.p8
+*.p7b
+*.p7c
+*.p7m
+*.p7s
+*.p12
+*.pfx
+*.key
+*.crt
+*.csr
+*.srl
+*.der
+*.pem
+*.p7b
+*.p7c
+*.p7m
+*.p7s
+*.p12
+*.pfx
+*.key
+*.crt
+*.csr
+*.srl
+*.der 
