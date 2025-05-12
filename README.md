@@ -52,7 +52,7 @@ The following environment variables can be configured in your `.env` file:
 - `GEMINI_API_KEY`: Your Google Gemini API key (required)
 - `MAX_RETRIES`: Maximum number of retry attempts for API calls (default: 3)
 - `RETRY_DELAY`: Delay between retries in seconds (default: 2)
-- `MODEL_NAME`: Gemini model to use (default: models/gemini-1.5-pro-latest)
+- `MODEL_NAME`: Gemini model to use (default: models/gemini-2.5-flash-preview-04-17)
 - `TEMPERATURE`: AI model temperature (default: 0.7)
 - `MAX_TOKENS`: Maximum tokens for response (default: 2048)
 
