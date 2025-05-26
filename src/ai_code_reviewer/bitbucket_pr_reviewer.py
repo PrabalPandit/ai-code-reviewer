@@ -1,9 +1,20 @@
 import os
 import base64
 import requests
+import logging
 from typing import Dict, List, Optional
 from .code_reviewer import CodeReviewer
 from .gemini_client import GeminiAIClient
+from rich.logging import RichHandler
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(message)s",
+    datefmt="[%X]",
+    handlers=[RichHandler(rich_tracebacks=True)]
+)
+logger = logging.getLogger("rich")
 
 class BitbucketPRReviewer:
     def __init__(self, username: str, app_password: str, workspace: str, repo_slug: str):
@@ -25,7 +36,8 @@ class BitbucketPRReviewer:
         self.headers = {
             "Accept": "application/json"
         }
-        self.code_reviewer = CodeReviewer(GeminiAIClient())
+        # Initialize GeminiAIClient with default retry settings
+        self.code_reviewer = CodeReviewer(client=GeminiAIClient(max_retries=3, retry_delay=2))
 
     def get_pr_details(self, pr_number: int) -> Dict:
         """
