@@ -225,10 +225,28 @@ The tool can be integrated with CI/CD pipelines for automatic PR reviews. Here's
 
 2. **Required Environment Variables**
    Set these in your Bitbucket repository settings (Repository Settings > Repository Variables):
+
+   
+   **Bitbucket Credentials:**
    - `BITBUCKET_USERNAME`: Your Bitbucket username
    - `BITBUCKET_APP_PASSWORD`: Bitbucket app password with PR read/write permissions
    - `BITBUCKET_WORKSPACE`: Your workspace/team name
    - `BITBUCKET_REPO_SLUG`: Your repository slug
+
+   
+   **Gemini AI Configuration:**
+   - `GEMINI_API_KEY`: Your Google Gemini API key (required for AI code review)
+   - `MAX_RETRIES`: Maximum number of retry attempts (default: 3)
+   - `RETRY_DELAY`: Delay between retries in seconds (default: 2)
+   - `MODEL_NAME`: Gemini model to use (default: models/gemini-2.5-flash-preview-04-17)
+   - `TEMPERATURE`: AI model temperature (default: 0.7)
+   - `MAX_TOKENS`: Maximum tokens for response (default: 2048)
+
+   **Important Security Notes:**
+   - Make sure to mark `BITBUCKET_APP_PASSWORD` and `GEMINI_API_KEY` as **Secured** variables
+   - Never commit these values directly in your code or pipeline configuration
+   - Rotate your API keys regularly for security
+
 
 3. **App Password Setup**
    - Go to Bitbucket Settings > App passwords
