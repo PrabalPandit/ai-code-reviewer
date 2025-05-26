@@ -92,6 +92,155 @@ ai-code-reviewer ~/projects/my-project reviews/ --mode project --exclude venv --
 - `--max-retries` or `-r`: Maximum number of retry attempts (default: 3)
 - `--retry-delay` or `-d`: Delay between retries in seconds (default: 2)
 
+### Review Pull Requests
+
+The tool can review Pull Requests from both GitHub and Bitbucket. Choose your platform below:
+
+#### GitHub PR Review
+
+1. Create a GitHub Personal Access Token:
+   - Go to GitHub Settings > Developer Settings > Personal Access Tokens
+   - Generate a new token with `repo` scope
+   - Copy the token
+
+2. Set up environment variables:
+   ```bash
+   export GITHUB_TOKEN='your-token-here'
+   export GITHUB_REPOSITORY_OWNER='your-org-or-username'
+   export GITHUB_REPOSITORY_NAME='your-repo-name'
+   ```
+
+3. Review a PR:
+   ```bash
+   python -m ai_code_reviewer.cli --pr 123 --platform github
+   ```
+
+4. Review and post comment:
+   ```bash
+   python -m ai_code_reviewer.cli --pr 123 --platform github --post-comment
+   ```
+
+#### Bitbucket PR Review
+
+1. Create a Bitbucket App Password:
+   - Go to Bitbucket Settings > App passwords
+   - Create a new app password with `Pull requests: Read` and `Pull requests: Write` permissions
+   - Copy the app password
+
+2. Set up environment variables:
+   ```bash
+   export BITBUCKET_USERNAME='your-username'
+   export BITBUCKET_APP_PASSWORD='your-app-password'
+   export BITBUCKET_WORKSPACE='your-workspace'
+   export BITBUCKET_REPO_SLUG='your-repo-slug'
+   ```
+
+3. Review a PR:
+   ```bash
+   python -m ai_code_reviewer.cli --pr 123 --platform bitbucket
+   ```
+
+4. Review and post comment:
+   ```bash
+   python -m ai_code_reviewer.cli --pr 123 --platform bitbucket --post-comment
+   ```
+
+#### Command Options
+
+Common options:
+- `--pr`: Pull request number to review
+- `--platform`: Platform to use ('github' or 'bitbucket', default: 'github')
+- `--post-comment`: Post review as a comment on the PR
+
+GitHub specific options:
+- `--owner`: Repository owner/organization name
+- `--repo`: Repository name
+- `--token`: GitHub personal access token
+
+Bitbucket specific options:
+- `--workspace`: Bitbucket workspace/team name
+- `--repo-slug`: Bitbucket repository slug
+- `--username`: Bitbucket username
+- `--app-password`: Bitbucket app password
+
+#### PR Review Output
+
+The PR review includes:
+1. **PR Details**
+   - Title and description
+   - Changed files
+   - Overall assessment
+
+2. **File Reviews**
+   - Individual file analysis
+   - Code quality assessment
+   - Suggestions for improvement
+
+3. **Summary**
+   - Total files reviewed
+   - Number of suggestions
+   - Overall recommendations
+
+4. **Platform Integration**
+   - Optional automatic comment posting
+   - Review results in PR discussion
+
+### Automated PR Reviews with CI/CD
+
+The tool can be integrated with CI/CD pipelines for automatic PR reviews. Here's how to set it up:
+
+#### GitHub Actions Integration
+
+1. The `.github/workflows/pr-review.yml` file is already configured to run on PR events.
+2. No additional setup is required as GitHub Actions automatically provides the necessary environment variables.
+
+#### Bitbucket Pipelines Integration
+
+1. **Repository Setup**
+   - Ensure your AI Code Reviewer is in a public repository
+   - Add the following `bitbucket-pipelines.yml` to your repository:
+   ```yaml
+   image: python:3.9
+
+   pipelines:
+     pull-requests:
+       '**':
+         - step:
+             name: AI Code Review
+             script:
+               - pip install git+https://github.com/yourusername/ai-code-reviewer.git
+               - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment
+             caches:
+               - pip
+             env:
+               BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+               BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+               BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
+               BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
+
+   definitions:
+     caches:
+       pip: ~/.cache/pip
+   ```
+
+2. **Required Environment Variables**
+   Set these in your Bitbucket repository settings (Repository Settings > Repository Variables):
+   - `BITBUCKET_USERNAME`: Your Bitbucket username
+   - `BITBUCKET_APP_PASSWORD`: Bitbucket app password with PR read/write permissions
+   - `BITBUCKET_WORKSPACE`: Your workspace/team name
+   - `BITBUCKET_REPO_SLUG`: Your repository slug
+
+3. **App Password Setup**
+   - Go to Bitbucket Settings > App passwords
+   - Create a new app password with these permissions:
+     - Repositories: Read, Write
+     - Pull requests: Read, Write
+
+4. **Testing the Integration**
+   - Create a new PR in your repository
+   - The pipeline will automatically run and post a review comment
+   - Check the Pipelines tab for execution status
+
 ## Supported File Types
 
 The tool supports the following file types:

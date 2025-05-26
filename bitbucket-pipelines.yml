@@ -1,0 +1,23 @@
+image: python:3.9
+
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          name: AI Code Review
+          script:
+            - pip install git+https://github.com/yourusername/ai-code-reviewer.git
+            - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment
+          services:
+            - docker
+          caches:
+            - pip
+          env:
+            BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+            BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+            BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
+            BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
+
+definitions:
+  caches:
+    pip: ~/.cache/pip 
