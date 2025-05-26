@@ -20,6 +20,7 @@ pipelines:
             BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
             BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
             BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
+
             # Gemini AI configuration
             GEMINI_API_KEY: $GEMINI_API_KEY
             MAX_RETRIES: 3
