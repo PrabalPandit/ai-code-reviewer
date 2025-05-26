@@ -55,7 +55,16 @@ class BitbucketPRReviewer:
         url = f"{self.base_url}/pullrequests/{pr_number}/diffstat"
         response = requests.get(url, auth=self.auth, headers=self.headers)
         response.raise_for_status()
-        return response.json()["values"]
+        files = response.json()["values"]
+        
+        # Transform the response to match our expected format
+        transformed_files = []
+        for file in files:
+            transformed_files.append({
+                'path': file['new']['path'] if file['new'] else file['old']['path'],
+                'status': file['status']
+            })
+        return transformed_files
 
     def get_file_content(self, file_path: str, commit_hash: str) -> str:
         """
@@ -71,7 +80,14 @@ class BitbucketPRReviewer:
         url = f"{self.base_url}/src/{commit_hash}/{file_path}"
         response = requests.get(url, auth=self.auth, headers=self.headers)
         response.raise_for_status()
-        return response.text
+        
+        # Handle both raw and base64 encoded content
+        content_type = response.headers.get('content-type', '')
+        if 'text' in content_type:
+            return response.text
+        else:
+            # For binary files, return a placeholder
+            return f"[Binary file: {file_path}]"
 
     def review_pr(self, pr_number: int) -> Dict:
         """
@@ -93,12 +109,16 @@ class BitbucketPRReviewer:
         file_reviews = []
         for file in changed_files:
             if file['status'] != 'removed':  # Skip deleted files
-                file_content = self.get_file_content(file['path'], pr_details["source"]["commit"]["hash"])
-                file_review = self.code_reviewer.review_file(file['path'], content=file_content)
-                file_reviews.append({
-                    'path': file['path'],
-                    'review': file_review
-                })
+                try:
+                    file_content = self.get_file_content(file['path'], pr_details["source"]["commit"]["hash"])
+                    file_review = self.code_reviewer.review_file(file['path'], content=file_content)
+                    file_reviews.append({
+                        'path': file['path'],
+                        'review': file_review
+                    })
+                except Exception as e:
+                    logger.error(f"Error reviewing file {file['path']}: {str(e)}")
+                    continue
         
         # Generate overall assessment
         overall_assessment = self._generate_overall_assessment(file_reviews)
