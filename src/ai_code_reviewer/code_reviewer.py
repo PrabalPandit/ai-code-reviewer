@@ -64,21 +64,23 @@ class CodeReviewer:
             logger.warning(f"Guidelines file not found: {guidelines_path}")
             return None
 
-    def review_file(self, file_path: str, guidelines: Optional[str] = None) -> str:
+    def review_file(self, file_path: str, content: Optional[str] = None, guidelines: Optional[str] = None) -> str:
         """
         Review a single file.
         
         Args:
             file_path (str): Path to the file to review
+            content (Optional[str]): File content. If not provided, will be read from file_path
             guidelines (Optional[str]): Optional review guidelines
             
         Returns:
             str: The review report
         """
         try:
-            with open(file_path, 'r') as f:
-                code = f.read()
-            return self.client.review_code(code, guidelines)
+            if content is None:
+                with open(file_path, 'r') as f:
+                    content = f.read()
+            return self.client.review_code(content, guidelines)
         except Exception as e:
             logger.error(f"Error reviewing file {file_path}: {str(e)}")
             raise
@@ -141,7 +143,7 @@ class CodeReviewer:
                     output_path = project_output_dir / rel_path.parent / f"{rel_path.stem}_review.md"
                     
                     # Review the file
-                    review = self.review_file(str(file_path), guidelines)
+                    review = self.review_file(str(file_path))
                     
                     # Save the review
                     with open(output_path, 'w') as f:
@@ -181,7 +183,7 @@ def review(
             output_path = output_dir / f"{file_path.stem}_review.md"
             
             # Review the file
-            review = reviewer.review_file(str(file_path), guidelines)
+            review = reviewer.review_file(str(file_path))
             
             # Save the review
             with open(output_path, 'w') as f:

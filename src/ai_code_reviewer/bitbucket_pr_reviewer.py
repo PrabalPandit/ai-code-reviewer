@@ -75,42 +75,41 @@ class BitbucketPRReviewer:
 
     def review_pr(self, pr_number: int) -> Dict:
         """
-        Review a pull request using AI code review capabilities.
+        Review a pull request and return the review results.
         
         Args:
             pr_number (int): Pull request number
             
         Returns:
-            Dict: Review results including comments and suggestions
+            Dict: Review results including PR details and file reviews
         """
+        # Get PR details
         pr_details = self.get_pr_details(pr_number)
-        pr_files = self.get_pr_files(pr_number)
         
-        review_results = {
-            "pr_title": pr_details["title"],
-            "pr_description": pr_details["description"],
-            "files_reviewed": [],
-            "overall_assessment": "",
-            "suggestions": []
-        }
+        # Get changed files
+        changed_files = self.get_pr_files(pr_number)
         
-        for file in pr_files:
-            if file["status"] == "modified":
-                file_content = self.get_file_content(file["new"]["path"], pr_details["source"]["commit"]["hash"])
-                file_review = self.code_reviewer.review_code(file_content)
-                
-                review_results["files_reviewed"].append({
-                    "filename": file["new"]["path"],
-                    "review": file_review
+        # Review each file
+        file_reviews = []
+        for file in changed_files:
+            if file['status'] != 'removed':  # Skip deleted files
+                file_content = self.get_file_content(file['path'], pr_details["source"]["commit"]["hash"])
+                file_review = self.code_reviewer.review_file(file['path'], content=file_content)
+                file_reviews.append({
+                    'path': file['path'],
+                    'review': file_review
                 })
-                
-                if file_review.get("suggestions"):
-                    review_results["suggestions"].extend(file_review["suggestions"])
         
         # Generate overall assessment
-        review_results["overall_assessment"] = self._generate_overall_assessment(review_results)
+        overall_assessment = self._generate_overall_assessment(file_reviews)
         
-        return review_results
+        return {
+            'pr_title': pr_details['title'],
+            'pr_description': pr_details['description'],
+            'changed_files': [f['path'] for f in changed_files],
+            'file_reviews': file_reviews,
+            'overall_assessment': overall_assessment
+        }
 
     def _generate_overall_assessment(self, review_results: Dict) -> str:
         """

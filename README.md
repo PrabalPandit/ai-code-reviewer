@@ -198,30 +198,7 @@ The tool can be integrated with CI/CD pipelines for automatic PR reviews. Here's
 
 1. **Repository Setup**
    - Ensure your AI Code Reviewer is in a public repository
-   - Add the following `bitbucket-pipelines.yml` to your repository:
-   ```yaml
-   image: python:3.9
-
-   pipelines:
-     pull-requests:
-       '**':
-         - step:
-             name: AI Code Review
-             script:
-               - pip install git+https://github.com/yourusername/ai-code-reviewer.git
-               - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment
-             caches:
-               - pip
-             env:
-               BITBUCKET_USERNAME: $BITBUCKET_USERNAME
-               BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
-               BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
-               BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
-
-   definitions:
-     caches:
-       pip: ~/.cache/pip
-   ```
+   - Add the `bitbucket-pipelines.yml` to your repository:
 
 2. **Required Environment Variables**
    Set these in your Bitbucket repository settings (Repository Settings > Repository Variables):
