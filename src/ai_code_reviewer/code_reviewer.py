@@ -35,15 +35,16 @@ app = typer.Typer(help="AI Code Reviewer - Review code using Google's Gemini AI"
 class CodeReviewer:
     """Main code reviewer class for analyzing code files."""
     
-    def __init__(self, max_retries: int = 3, retry_delay: int = 2):
+    def __init__(self, client: Optional[GeminiAIClient] = None, max_retries: int = 3, retry_delay: int = 2):
         """
         Initialize the code reviewer.
         
         Args:
+            client (Optional[GeminiAIClient]): Gemini AI client instance
             max_retries (int): Maximum number of retry attempts for API calls
             retry_delay (int): Delay between retries in seconds
         """
-        self.client = GeminiAIClient(max_retries=max_retries, retry_delay=retry_delay)
+        self.client = client if client is not None else GeminiAIClient(max_retries=max_retries, retry_delay=retry_delay)
 
     def load_guidelines(self, guidelines_path: Optional[str] = None) -> Optional[str]:
         """Load review guidelines from a file.
