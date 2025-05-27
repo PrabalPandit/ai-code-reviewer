@@ -355,7 +355,7 @@ class BitbucketPRReviewer:
         """
         logger.info(f"Posting review comments for PR #{pr_number}")
         
-        # Post a summary comment in the overview
+        # Post a summary comment in the overview 
         summary_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
         summary_payload = {
             "content": {
