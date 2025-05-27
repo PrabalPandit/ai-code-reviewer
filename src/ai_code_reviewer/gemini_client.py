@@ -91,33 +91,7 @@ class GeminiAIClient:
         for i, line in enumerate(code.splitlines(), 1):
             numbered_code += f"{i:4d} | {line}\n"
 
-        base_prompt = """Please review the following code and provide a detailed analysis. 
-        Focus on:
-        1. Code quality and readability
-        2. Potential bugs or issues
-        3. Security concerns
-        4. Performance considerations
-        5. Best practices and design patterns
-        6. Suggestions for improvement
-        
-        Format your response as:
-        ## Code Review Report
-        
-        ### Summary
-        [Brief overview of the code and main findings]
-        
-        ### Detailed Analysis
-        [Detailed breakdown of findings by category. For each issue, include the line number(s) where it occurs]
-        
-        ### Recommendations
-        [Specific suggestions for improvement with line numbers]
-        
-        ### Security Considerations
-        [Any security-related findings with line numbers]
-        
-        ### Performance Notes
-        [Performance-related observations with line numbers]
-        
+        base_prompt = """
         Code to review (with line numbers):
         ```
         {code}

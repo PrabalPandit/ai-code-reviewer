@@ -117,8 +117,9 @@ class CodeReviewer:
         
         for section in sections:
             if section.strip():
-                # Add a header for each section
-                formatted_sections.append(f"### Review Comment\n{section}")
+                # Skip sections that contain code blocks or file content
+                if not (section.startswith('```') or section.strip().startswith('1 |')):
+                    formatted_sections.append(section)
         
         return '\n\n'.join(formatted_sections)
 
