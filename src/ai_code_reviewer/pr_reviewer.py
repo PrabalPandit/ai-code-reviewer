@@ -137,7 +137,7 @@ class PRReviewer:
 
     def post_review_comment(self, pr_number: int, review_results: Dict) -> None:
         """
-        Post the review results as a comment on the PR.
+        Post the review results as a comment on the PR overview section.
         
         Args:
             pr_number (int): Pull request number

@@ -75,16 +75,53 @@ class CodeReviewer:
             guidelines (Optional[str]): Optional review guidelines
             
         Returns:
-            str: The review report
+            str: The review report formatted for inline comments
         """
         try:
+            logger.info(f"Starting review for file: {file_path}")
             if content is None:
+                logger.info(f"Reading content from file: {file_path}")
                 with open(file_path, 'r') as f:
                     content = f.read()
-            return self.client.review_code(content, guidelines)
+            
+            if guidelines:
+                logger.info("Using provided review guidelines")
+            else:
+                logger.info("No specific guidelines provided, using default review criteria")
+            
+            logger.info("Sending content to Gemini AI for review")
+            review = self.client.review_code(content, guidelines)
+            logger.info("Successfully received review from Gemini AI")
+            
+            # Format the review for inline comments
+            formatted_review = self._format_review_for_inline(review)
+            return formatted_review
+            
         except Exception as e:
-            logger.error(f"Error reviewing file {file_path}: {str(e)}")
+            logger.error(f"Error reviewing file {file_path}: {str(e)}", exc_info=True)
             raise
+
+    def _format_review_for_inline(self, review: str) -> str:
+        """
+        Format the review text for inline comments.
+        
+        Args:
+            review (str): Raw review text from Gemini AI
+            
+        Returns:
+            str: Formatted review text suitable for inline comments
+        """
+        # Split the review into sections
+        sections = review.split('\n\n')
+        formatted_sections = []
+        
+        for section in sections:
+            if section.strip():
+                # Skip sections that contain code blocks or file content
+                if not (section.startswith('```') or section.strip().startswith('1 |')):
+                    formatted_sections.append(section)
+        
+        return '\n\n'.join(formatted_sections)
 
     def review_project(self, project_path: str, output_dir: str, 
                       exclude_dirs: Optional[List[str]] = None,

@@ -6,21 +6,16 @@ from .bitbucket_pr_reviewer import BitbucketPRReviewer
 def main():
     parser = argparse.ArgumentParser(description='AI Code Reviewer CLI')
     parser.add_argument('--pr', type=int, help='Pull request number to review')
-    parser.add_argument('--platform', type=str, choices=['github', 'bitbucket'], default='github',
-                      help='Platform to use for PR review (github or bitbucket)')
-    
-    # GitHub specific arguments
-    parser.add_argument('--owner', type=str, help='Repository owner/organization name (GitHub)')
-    parser.add_argument('--repo', type=str, help='Repository name (GitHub)')
-    parser.add_argument('--token', type=str, help='GitHub personal access token')
-    
-    # Bitbucket specific arguments
-    parser.add_argument('--workspace', type=str, help='Bitbucket workspace/team name')
-    parser.add_argument('--repo-slug', type=str, help='Bitbucket repository slug')
-    parser.add_argument('--username', type=str, help='Bitbucket username')
-    parser.add_argument('--app-password', type=str, help='Bitbucket app password')
-    
+    parser.add_argument('--platform', choices=['github', 'bitbucket'], default='bitbucket', help='Platform to use (github or bitbucket)')
+    parser.add_argument('--token', help='GitHub token (for GitHub platform)')
+    parser.add_argument('--username', help='Bitbucket username (for Bitbucket platform)')
+    parser.add_argument('--app-password', help='Bitbucket app password (for Bitbucket platform)')
+    parser.add_argument('--workspace', help='Bitbucket workspace (for Bitbucket platform)')
+    parser.add_argument('--repo-slug', help='Bitbucket repository slug (for Bitbucket platform)')
+    parser.add_argument('--owner', help='GitHub repository owner (for GitHub platform)')
+    parser.add_argument('--repo', help='GitHub repository name (for GitHub platform)')
     parser.add_argument('--post-comment', action='store_true', help='Post review as a comment on the PR')
+    parser.add_argument('--guidelines', help='Path to review guidelines file')
     
     args = parser.parse_args()
     
@@ -47,6 +42,10 @@ def main():
             
             if not all([username, app_password, workspace, repo_slug]):
                 raise ValueError("Bitbucket credentials and repository info must be provided either via arguments or environment variables")
+            
+            # Set guidelines path in environment if provided
+            if args.guidelines:
+                os.environ['REVIEW_GUIDELINES_PATH'] = args.guidelines
             
             reviewer = BitbucketPRReviewer(username, app_password, workspace, repo_slug)
         

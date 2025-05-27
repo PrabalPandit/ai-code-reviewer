@@ -6,12 +6,13 @@ An AI-powered code review tool that uses Google's Gemini AI to analyze and revie
 
 - Review individual files or entire projects
 - Maintains project package structure in reviews
-- Comprehensive API review guidelines
 - Line-by-line code analysis
 - Detailed recommendations and improvements
-- Security and performance analysis
 - Support for multiple programming languages
 - Configurable AI model parameters
+- Automated Pull request review support for GitHub and Bitbucket
+- Automated PR review comments in the overview section
+- Progress tracking with rich console output
 
 ## Prerequisites
 
@@ -63,23 +64,23 @@ The tool can be used in two modes: file review and project review.
 ### Review a Single File
 
 ```bash
-ai-code-reviewer /path/to/file reviews/ --mode file --guidelines guidelines.md
+ai-code-reviewer /path/to/file reviews/ --mode file
 ```
 
 Example:
 ```bash
-ai-code-reviewer src/main/java/com/example/MyClass.java reviews/ --mode file --guidelines guidelines.md
+ai-code-reviewer src/main/java/com/example/MyClass.java reviews/ --mode file
 ```
 
 ### Review a Project
 
 ```bash
-ai-code-reviewer /path/to/project reviews/ --mode project --exclude venv --exclude .git --guidelines guidelines.md
+ai-code-reviewer /path/to/project reviews/ --mode project --exclude venv --exclude .git
 ```
 
 Example:
 ```bash
-ai-code-reviewer ~/projects/my-project reviews/ --mode project --exclude venv --exclude .git --exclude node_modules --guidelines guidelines.md
+ai-code-reviewer ~/projects/my-project reviews/ --mode project --exclude venv --exclude .git --exclude node_modules
 ```
 
 ### Command Options
@@ -88,7 +89,6 @@ ai-code-reviewer ~/projects/my-project reviews/ --mode project --exclude venv --
 - `output_dir`: Directory to save review reports
 - `--mode` or `-m`: Review mode ('file' or 'project', default: 'project')
 - `--exclude` or `-e`: Directories to exclude (only for project mode)
-- `--guidelines` or `-g`: Path to review guidelines file
 - `--max-retries` or `-r`: Maximum number of retry attempts (default: 3)
 - `--retry-delay` or `-d`: Delay between retries in seconds (default: 2)
 
@@ -149,7 +149,7 @@ The tool can review Pull Requests from both GitHub and Bitbucket. Choose your pl
 
 Common options:
 - `--pr`: Pull request number to review
-- `--platform`: Platform to use ('github' or 'bitbucket', default: 'github')
+- `--platform`: Platform to use ('github' or 'bitbucket', default: 'bitbucket')
 - `--post-comment`: Post review as a comment on the PR
 
 GitHub specific options:
@@ -163,7 +163,7 @@ Bitbucket specific options:
 - `--username`: Bitbucket username
 - `--app-password`: Bitbucket app password
 
-#### PR Review Output
+### PR Review Output
 
 The PR review includes:
 1. **PR Details**
@@ -182,59 +182,8 @@ The PR review includes:
    - Overall recommendations
 
 4. **Platform Integration**
-   - Optional automatic comment posting
-   - Review results in PR discussion
-
-### Automated PR Reviews with CI/CD
-
-The tool can be integrated with CI/CD pipelines for automatic PR reviews. Here's how to set it up:
-
-#### GitHub Actions Integration
-
-1. The `.github/workflows/pr-review.yml` file is already configured to run on PR events.
-2. No additional setup is required as GitHub Actions automatically provides the necessary environment variables.
-
-#### Bitbucket Pipelines Integration
-
-1. **Repository Setup**
-   - Ensure your AI Code Reviewer is in a public repository
-   - Add the `bitbucket-pipelines.yml` to your repository:
-
-2. **Required Environment Variables**
-   Set these in your Bitbucket repository settings (Repository Settings > Repository Variables):
-
-   
-   **Bitbucket Credentials:**
-   - `BITBUCKET_USERNAME`: Your Bitbucket username
-   - `BITBUCKET_APP_PASSWORD`: Bitbucket app password with PR read/write permissions
-   - `BITBUCKET_WORKSPACE`: Your workspace/team name
-   - `BITBUCKET_REPO_SLUG`: Your repository slug
-
-   
-   **Gemini AI Configuration:**
-   - `GEMINI_API_KEY`: Your Google Gemini API key (required for AI code review)
-   - `MAX_RETRIES`: Maximum number of retry attempts (default: 3)
-   - `RETRY_DELAY`: Delay between retries in seconds (default: 2)
-   - `MODEL_NAME`: Gemini model to use (default: models/gemini-2.5-flash-preview-04-17)
-   - `TEMPERATURE`: AI model temperature (default: 0.7)
-   - `MAX_TOKENS`: Maximum tokens for response (default: 2048)
-
-   **Important Security Notes:**
-   - Make sure to mark `BITBUCKET_APP_PASSWORD` and `GEMINI_API_KEY` as **Secured** variables
-   - Never commit these values directly in your code or pipeline configuration
-   - Rotate your API keys regularly for security
-
-
-3. **App Password Setup**
-   - Go to Bitbucket Settings > App passwords
-   - Create a new app password with these permissions:
-     - Repositories: Read, Write
-     - Pull requests: Read, Write
-
-4. **Testing the Integration**
-   - Create a new PR in your repository
-   - The pipeline will automatically run and post a review comment
-   - Check the Pipelines tab for execution status
+   - Review results posted in PR overview section
+   - No file-specific comments in Files Changed tab
 
 ## Supported File Types
 
@@ -282,106 +231,6 @@ Each review report includes:
    - Suggested improvements
    - Code optimization tips
    - Best practices to follow
-
-4. **Security Considerations**
-   - Security vulnerabilities
-   - Best practices
-   - Risk assessment
-
-5. **Performance Notes**
-   - Performance bottlenecks
-   - Optimization opportunities
-   - Resource usage analysis
-
-## Review Guidelines
-
-The tool uses comprehensive guidelines for code review, including:
-
-### API Design and Structure
-- RESTful principles and best practices
-- API documentation requirements
-- Versioning strategy
-
-### Integration and Dependencies
-- Service-to-service communication
-- Message queue usage
-- Database interactions
-- DTO and model usage
-
-### Security
-- Authentication and authorization
-- Input validation
-- API security measures
-- Rate limiting and CORS
-
-### Performance
-- Response time optimization
-- Resource usage
-- Caching strategy
-- Query optimization
-
-### Code Quality
-- Clean code principles
-- Error handling
-- Testing requirements
-- Documentation
-
-## Security Considerations
-
-### API Key Security
-1. Never commit your `.env` file to version control
-2. Use environment variables for sensitive data
-3. Rotate your API keys regularly
-4. Use the minimum required permissions for your API key
-
-### Code Review Security
-1. Be cautious when reviewing code containing sensitive information
-2. Review outputs may contain code snippets and analysis
-3. Consider using the tool in a private environment for sensitive code
-4. Regularly clean up review outputs
-
-### Best Practices
-1. Keep dependencies updated
-2. Use virtual environments
-3. Review the code you're about to analyze
-4. Be aware of rate limits and quotas
-5. Monitor API usage
-
-### Reporting Security Issues
-If you discover a security vulnerability, please:
-1. Do not create a public issue
-2. Email security@yourdomain.com
-3. Include detailed information about the vulnerability
-4. We will respond within 48 hours
-
-## Troubleshooting
-
-### Common Issues
-
-1. **API Key Issues**
-   - Error: "Invalid API key"
-   - Solution: Verify your API key in the `.env` file
-   - Make sure the key is active and has sufficient quota
-
-2. **Model Not Found**
-   - Error: "Model not found"
-   - Solution: Check the MODEL_NAME in your `.env` file
-   - Ensure you're using a supported model version
-
-3. **Rate Limiting**
-   - Error: "Rate limit exceeded"
-   - Solution: Increase RETRY_DELAY in `.env`
-   - Consider upgrading your API quota
-
-4. **File Access Issues**
-   - Error: "Permission denied"
-   - Solution: Check file permissions
-   - Ensure you have read access to the files
-
-5. **Memory Issues**
-   - Error: "Out of memory"
-   - Solution: Reduce MAX_TOKENS in `.env`
-   - Review smaller files or projects
 
 ## Development
 

@@ -158,3 +158,6 @@ db.sqlite3-journal
 *.csr
 *.srl
 *.der 
+
+#Run local
+run_local.sh

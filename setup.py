@@ -6,12 +6,12 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setup(
     name="ai-code-reviewer",
     version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Prabal Pandit",
+    author_email="panditprabal@gmail.com",
     description="An AI-powered code review tool using Google's Gemini AI",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/ai-code-reviewer",
+    url="https://github.com/PrabalPandit/ai-code-reviewer",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
