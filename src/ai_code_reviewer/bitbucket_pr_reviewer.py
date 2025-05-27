@@ -347,7 +347,7 @@ class BitbucketPRReviewer:
     def post_review_comment(self, pr_number: int, review_results: Dict) -> None:
         """
         Post the review results as comments in the PR.
-        Summary goes to overview, detailed reviews go to Files Changed tab.
+        Summary goes to overview section only.
         
         Args:
             pr_number (int): Pull request number
@@ -355,7 +355,7 @@ class BitbucketPRReviewer:
         """
         logger.info(f"Posting review comments for PR #{pr_number}")
         
-        # First, post a summary comment in the overview
+        # Post a summary comment in the overview
         summary_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
         summary_payload = {
             "content": {
@@ -374,63 +374,4 @@ class BitbucketPRReviewer:
             logger.info("Posted summary comment in overview")
         except requests.exceptions.HTTPError as e:
             logger.error(f"Failed to post summary comment: {str(e)}")
-            logger.error(f"Response content: {e.response.content}")
-        
-        # Get PR details for the latest commit
-        pr_details = self.get_pr_details(pr_number)
-        commit_hash = pr_details["source"]["commit"]["hash"]
-        
-        # Then post file-specific comments in the Files Changed tab
-        for file_review in review_results['file_reviews']:
-            file_path = file_review['path']
-            review_text = file_review['review']
-            
-            try:
-                # Get the diff for this file
-                diff_content = self.get_file_diff(pr_number, file_path)
-                changed_lines = self.get_changed_lines(diff_content)
-                
-                if changed_lines:
-                    # Post a comment for each added line only
-                    for line in changed_lines:
-                        if line['type'] == 'addition':  # Only comment on added lines
-                            # Create a focused review for this specific change
-                            change_context = "\n".join(line['context'])
-                            change_review = ""
-                            if change_context:
-                                change_review += f"**Context**:\n```\n{change_context}\n```\n\n"
-                            change_review += f"{review_text}"
-                            
-                            comment_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
-                            comment_payload = {
-                                "content": {
-                                    "raw": change_review
-                                },
-                                "inline": {
-                                    "path": file_path,
-                                    "from": line['line_number'],
-                                    "to": line['line_number']
-                                }
-                            }
-                            
-                            try:
-                                response = requests.post(
-                                    comment_url,
-                                    auth=self.auth,
-                                    headers=self.headers,
-                                    json=comment_payload
-                                )
-                                response.raise_for_status()
-                                logger.info(f"Posted review comment for {file_path} at line {line['line_number']}")
-                            except requests.exceptions.HTTPError as e:
-                                logger.error(f"Failed to post comment for {file_path}: {str(e)}")
-                                logger.error(f"Response content: {e.response.content}")
-                                logger.error(f"Payload: {comment_payload}")
-                else:
-                    logger.warning(f"No changed lines found for {file_path}")
-                    
-            except Exception as e:
-                logger.error(f"Failed to process {file_path}: {str(e)}")
-                continue
-        
-        logger.info("Finished posting all comments") 
+            logger.error(f"Response content: {e.response.content}") 
