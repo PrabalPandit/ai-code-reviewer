@@ -4,23 +4,23 @@ pipelines:
   pull-requests:
     '**':
       - step:
-          name: AI Code Review
+          name: "AI Code Review"
           script:
             # Install dependencies
-            - pip install git+https://github.com/yourusername/ai-code-reviewer.git
-            # Run the review with environment variables
-            - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment
-          services:
-            - docker
-          caches:
-            - pip
+            - pip install -r requirements.txt
+            # Install the code reviewer from git (always get latest version)
+            - pip install --no-cache-dir git+https://github.com/PrabalPandit/ai-code-reviewer.git
+            # Run the review
+            - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment --guidelines guidelines.md
+          after-script:
+            - echo "Code review completed"
           env:
-            # Bitbucket credentials
+            # Bitbucket credentials (automatically available in pipeline)
             BITBUCKET_USERNAME: $BITBUCKET_USERNAME
             BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
             BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
             BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
-
+            
             # Gemini AI configuration
             GEMINI_API_KEY: $GEMINI_API_KEY
             MAX_RETRIES: 3
