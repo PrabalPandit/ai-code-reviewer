@@ -91,14 +91,14 @@ class GeminiAIClient:
         for i, line in enumerate(code.splitlines(), 1):
             numbered_code += f"{i:4d} | {line}\n"
 
-        base_prompt = """
+        base_prompt = f"""
         Code to review (with line numbers):
         ```
-        {code}
+        {numbered_code}
         ```
         """
         
         if guidelines:
             base_prompt = f"{guidelines}\n\n{base_prompt}"
             
-        return base_prompt.format(code=numbered_code) 
+        return base_prompt 
