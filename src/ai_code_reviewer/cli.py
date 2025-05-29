@@ -52,12 +52,12 @@ def main():
         # Review the specified PR
         review_results = reviewer.review_pr(args.pr)
         
-        # Print review results
-        print("\n=== PR Review Results ===")
-        print(f"PR Title: {review_results['pr_title']}")
-        print(f"PR Description: {review_results['pr_description']}")
-        print("\nOverall Assessment:")
-        print(review_results['overall_assessment'])
+        # Print line-specific reviews
+        print("\nLine-Specific Reviews:")
+        for file_review in review_results.get('file_reviews', []):
+            print(f"\nFile: {file_review['path']}")
+            print(file_review['review'])
+        
         
         # Post comment if requested
         if args.post_comment:
