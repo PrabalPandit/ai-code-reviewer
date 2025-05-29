@@ -3,6 +3,7 @@ import base64
 import requests
 import logging
 import re
+import json
 from typing import Dict, List, Optional
 from .code_reviewer import CodeReviewer
 from .gemini_client import GeminiAIClient
@@ -58,12 +59,10 @@ class BitbucketPRReviewer:
         Returns:
             Dict: PR details including title, description, and changed files
         """
-        logger.info(f"Fetching PR details for PR #{pr_number}")
         url = f"{self.base_url}/pullrequests/{pr_number}"
         response = requests.get(url, auth=self.auth, headers=self.headers)
         response.raise_for_status()
         pr_details = response.json()
-        logger.info(f"Successfully fetched PR details: {pr_details['title']}")
         return pr_details
 
     def get_pr_files(self, pr_number: int) -> List[Dict]:
@@ -76,7 +75,6 @@ class BitbucketPRReviewer:
         Returns:
             List[Dict]: List of changed files with their details
         """
-        logger.info(f"Fetching changed files for PR #{pr_number}")
         url = f"{self.base_url}/pullrequests/{pr_number}/diffstat"
         response = requests.get(url, auth=self.auth, headers=self.headers)
         response.raise_for_status()
@@ -90,7 +88,6 @@ class BitbucketPRReviewer:
                 'path': file_path,
                 'status': file['status']
             })
-            logger.info(f"Found changed file: {file_path} (status: {file['status']})")
         return transformed_files
 
     def get_file_content(self, file_path: str, commit_hash: str) -> str:
@@ -104,7 +101,6 @@ class BitbucketPRReviewer:
         Returns:
             str: File content
         """
-        logger.info(f"Fetching content for file: {file_path} at commit {commit_hash}")
         url = f"{self.base_url}/src/{commit_hash}/{file_path}"
         response = requests.get(url, auth=self.auth, headers=self.headers)
         response.raise_for_status()
@@ -113,7 +109,6 @@ class BitbucketPRReviewer:
         content_type = response.headers.get('content-type', '')
         if 'text' in content_type:
             content = response.text
-            logger.info(f"Successfully fetched text content for {file_path}")
             return content
         else:
             logger.warning(f"Binary file detected: {file_path}")
@@ -281,18 +276,15 @@ class BitbucketPRReviewer:
         
         # Get PR details
         pr_details = self.get_pr_details(pr_number)
-        logger.info(f"PR Title: {pr_details['title']}")
         
         # Get changed files
         changed_files = self.get_pr_files(pr_number)
-        logger.info(f"Found {len(changed_files)} changed files")
         
         # Review each file
         file_reviews = []
         for file in changed_files:
             if file['status'] != 'removed':  # Skip deleted files
                 try:
-                    logger.info(f"Reviewing file: {file['path']}")
                     file_content = self.get_file_content(file['path'], pr_details["source"]["commit"]["hash"])
                     file_review = self.code_reviewer.review_file(file['path'], content=file_content, guidelines=self.guidelines)
                     file_reviews.append({
@@ -304,8 +296,6 @@ class BitbucketPRReviewer:
                     logger.error(f"Error reviewing file {file['path']}: {str(e)}", exc_info=True)
                     continue
         
-        # Generate overall assessment
-        logger.info("Generating overall assessment")
         overall_assessment = self._generate_overall_assessment(file_reviews)
         
         result = {
@@ -328,7 +318,6 @@ class BitbucketPRReviewer:
         Returns:
             str: Overall assessment of the PR
         """
-        logger.info("Generating overall assessment")
         total_files = len(file_reviews)
         
         assessment = f"PR Review Summary:\n"
@@ -353,7 +342,6 @@ class BitbucketPRReviewer:
             pr_number (int): Pull request number
             review_results (Dict): Results from the PR review
         """
-        logger.info(f"Posting review comments for PR #{pr_number}")
         
         # Post a summary comment in the overview 
         summary_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
@@ -374,4 +362,96 @@ class BitbucketPRReviewer:
             logger.info("Posted summary comment in overview")
         except requests.exceptions.HTTPError as e:
             logger.error(f"Failed to post summary comment: {str(e)}")
-            logger.error(f"Response content: {e.response.content}") 
+            logger.error(f"Response content: {e.response.content}")
+
+    def post_inline_comments(self, pr_number: int, file_reviews: List[Dict]) -> None:
+        """
+        Post inline comments for each file review.
+        
+        Args:
+            pr_number (int): Pull request number
+            file_reviews (List[Dict]): List of file reviews containing path and review content
+        """
+        
+        for file_review in file_reviews:
+            file_path = file_review['path']
+            review_content = file_review['review']
+            
+            # Get the diff for this file
+            file_diff = self.get_file_diff(pr_number, file_path)
+            if not file_diff:
+                logger.warning(f"Could not get diff for {file_path}, skipping inline comments")
+                continue
+            
+            # Parse the review content to extract line-specific comments
+            # Assuming the review content contains line numbers in the format "Line X:" or "Lines X-Y:"
+            line_comments = self._parse_line_comments(review_content)
+            
+            # Post each line comment
+            for comment in line_comments:
+                try:
+                    comment_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
+                    comment_payload = {
+                        "content": {
+                            "raw": comment['comment']
+                        },
+                        "inline": {
+                            "path": file_path,
+                            "from": comment['line_start'],
+                            "to": comment['line_end'] or comment['line_start']
+                        }
+                    }
+                    
+                    response = requests.post(
+                        comment_url,
+                        auth=self.auth,
+                        headers=self.headers,
+                        json=comment_payload
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Posted inline comment for {file_path} at line {comment['line_start']}")
+                except requests.exceptions.HTTPError as e:
+                    logger.error(f"Failed to post inline comment: {str(e)}")
+                    logger.error(f"Response content: {e.response.content}")
+
+    def _parse_line_comments(self, review_content: str) -> List[Dict]:
+        """
+        Parse the review content to extract line-specific comments.
+        
+        Args:
+            review_content (str): The review content text containing line comments in JSON format
+            
+        Returns:
+            List[Dict]: List of parsed line comments with line numbers and comment text
+        """
+        try:
+            # Find the JSON array in the review content
+            start_idx = review_content.find('[')
+            end_idx = review_content.rfind(']') + 1
+            
+            if start_idx == -1 or end_idx == 0:
+                logger.warning("No line comments found in review content")
+                return []
+                
+            # Extract and parse the JSON array
+            json_str = review_content[start_idx:end_idx]
+            comments = json.loads(json_str)
+            
+            # Transform the comments to match our expected format
+            formatted_comments = []
+            for comment in comments:
+                formatted_comment = {
+                    'line_start': comment['line-start'],
+                    'line_end': comment['line-end'],
+                    'comment': f"{comment['comment']}\n\nSuggestion: {comment['suggestion']}"
+                }
+                formatted_comments.append(formatted_comment)
+            
+            return formatted_comments
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse line comments JSON: {str(e)}")
+            return []
+        except Exception as e:
+            logger.error(f"Error parsing line comments: {str(e)}")
+            return [] 

@@ -52,17 +52,12 @@ def main():
         # Review the specified PR
         review_results = reviewer.review_pr(args.pr)
         
-        # Print review results
-        print("\n=== PR Review Results ===")
-        print(f"PR Title: {review_results['pr_title']}")
-        print(f"PR Description: {review_results['pr_description']}")
-        print("\nOverall Assessment:")
-        print(review_results['overall_assessment'])
         
         # Post comment if requested
         if args.post_comment:
             reviewer.post_review_comment(args.pr, review_results)
-            print("\nReview comment posted to PR")
+            reviewer.post_inline_comments(args.pr, review_results.get('file_reviews', []))
+            print("\nReview comments posted to PR")
     else:
         parser.print_help()
 
