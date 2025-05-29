@@ -135,15 +135,65 @@ The tool can review Pull Requests from both GitHub and Bitbucket. Choose your pl
    export BITBUCKET_REPO_SLUG='your-repo-slug'
    ```
 
-3. Review a PR:
+3. Create a `bitbucket-pipelines.yml` file in your repository root:
+   ```yaml
+   image: python:3.9
+
+   pipelines:
+     pull-requests:
+       '**':
+         - step:
+             name: "AI Code Review"
+             script:
+               # Install dependencies
+               - pip install -r requirements.txt
+               # Install the code reviewer from git (always get latest version)
+               - pip install --no-cache-dir git+https://github.com/PrabalPandit/ai-code-reviewer.git
+               # Run the review
+               - python -m ai_code_reviewer.cli --pr $BITBUCKET_PR_ID --platform bitbucket --post-comment --guidelines guidelines.md
+             after-script:
+               - echo "Code review completed"
+             env:
+               # Bitbucket credentials (automatically available in pipeline)
+               BITBUCKET_USERNAME: $BITBUCKET_USERNAME
+               BITBUCKET_APP_PASSWORD: $BITBUCKET_APP_PASSWORD
+               BITBUCKET_WORKSPACE: $BITBUCKET_WORKSPACE
+               BITBUCKET_REPO_SLUG: $BITBUCKET_REPO_SLUG
+               
+               # Gemini AI configuration
+               GEMINI_API_KEY: $GEMINI_API_KEY
+               MAX_RETRIES: 3
+               RETRY_DELAY: 2
+               MODEL_NAME: models/gemini-2.5-flash-preview-04-17
+               TEMPERATURE: 0.7
+               MAX_TOKENS: 2048
+
+   definitions:
+     caches:
+       pip: ~/.cache/pip
+   ```
+
+4. Configure repository variables in Bitbucket:
+   - Go to Repository Settings > Repository Variables
+   - Add the following variables:
+     - `BITBUCKET_USERNAME`: Your Bitbucket username
+     - `BITBUCKET_APP_PASSWORD`: Your Bitbucket app password
+     - `BITBUCKET_WORKSPACE`: Your workspace/team name
+     - `BITBUCKET_REPO_SLUG`: Your repository slug
+     - `GEMINI_API_KEY`: Your Gemini API key
+   - Mark sensitive variables (like API keys and passwords) as secured
+
+5. Review a PR:
    ```bash
    python -m ai_code_reviewer.cli --pr 123 --platform bitbucket
    ```
 
-4. Review and post comment:
+6. Review and post comment:
    ```bash
    python -m ai_code_reviewer.cli --pr 123 --platform bitbucket --post-comment
    ```
+
+Note: When using the pipeline, the review will automatically run on every PR creation and update. The pipeline will post both summary comments in the PR overview and inline comments on specific lines.
 
 #### Command Options
 
