@@ -3,6 +3,7 @@ import base64
 import requests
 import logging
 import re
+import json
 from typing import Dict, List, Optional
 from .code_reviewer import CodeReviewer
 from .gemini_client import GeminiAIClient
@@ -374,4 +375,97 @@ class BitbucketPRReviewer:
             logger.info("Posted summary comment in overview")
         except requests.exceptions.HTTPError as e:
             logger.error(f"Failed to post summary comment: {str(e)}")
-            logger.error(f"Response content: {e.response.content}") 
+            logger.error(f"Response content: {e.response.content}")
+
+    def post_inline_comments(self, pr_number: int, file_reviews: List[Dict]) -> None:
+        """
+        Post inline comments for each file review.
+        
+        Args:
+            pr_number (int): Pull request number
+            file_reviews (List[Dict]): List of file reviews containing path and review content
+        """
+        logger.info(f"Posting inline comments for PR #{pr_number}")
+        
+        for file_review in file_reviews:
+            file_path = file_review['path']
+            review_content = file_review['review']
+            
+            # Get the diff for this file
+            file_diff = self.get_file_diff(pr_number, file_path)
+            if not file_diff:
+                logger.warning(f"Could not get diff for {file_path}, skipping inline comments")
+                continue
+            
+            # Parse the review content to extract line-specific comments
+            # Assuming the review content contains line numbers in the format "Line X:" or "Lines X-Y:"
+            line_comments = self._parse_line_comments(review_content)
+            
+            # Post each line comment
+            for comment in line_comments:
+                try:
+                    comment_url = f"{self.base_url}/pullrequests/{pr_number}/comments"
+                    comment_payload = {
+                        "content": {
+                            "raw": comment['comment']
+                        },
+                        "inline": {
+                            "path": file_path,
+                            "from": comment['line_start'],
+                            "to": comment['line_end'] or comment['line_start']
+                        }
+                    }
+                    
+                    response = requests.post(
+                        comment_url,
+                        auth=self.auth,
+                        headers=self.headers,
+                        json=comment_payload
+                    )
+                    response.raise_for_status()
+                    logger.info(f"Posted inline comment for {file_path} at line {comment['line_start']}")
+                except requests.exceptions.HTTPError as e:
+                    logger.error(f"Failed to post inline comment: {str(e)}")
+                    logger.error(f"Response content: {e.response.content}")
+
+    def _parse_line_comments(self, review_content: str) -> List[Dict]:
+        """
+        Parse the review content to extract line-specific comments.
+        
+        Args:
+            review_content (str): The review content text containing line comments in JSON format
+            
+        Returns:
+            List[Dict]: List of parsed line comments with line numbers and comment text
+        """
+        try:
+            # Find the JSON array in the review content
+            start_idx = review_content.find('[')
+            end_idx = review_content.rfind(']') + 1
+            
+            if start_idx == -1 or end_idx == 0:
+                logger.warning("No line comments found in review content")
+                return []
+                
+            # Extract and parse the JSON array
+            json_str = review_content[start_idx:end_idx]
+            comments = json.loads(json_str)
+            
+            # Transform the comments to match our expected format
+            formatted_comments = []
+            for comment in comments:
+                formatted_comment = {
+                    'line_start': comment['line-start'],
+                    'line_end': comment['line-end'],
+                    'comment': f"{comment['comment']}\n\nSuggestion: {comment['suggestion']}"
+                }
+                formatted_comments.append(formatted_comment)
+            
+            return formatted_comments
+            
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse line comments JSON: {str(e)}")
+            return []
+        except Exception as e:
+            logger.error(f"Error parsing line comments: {str(e)}")
+            return [] 
