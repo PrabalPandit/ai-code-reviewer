@@ -52,12 +52,6 @@ def main():
         # Review the specified PR
         review_results = reviewer.review_pr(args.pr)
         
-        # Print line-specific reviews
-        print("\nLine-Specific Reviews:")
-        for file_review in review_results.get('file_reviews', []):
-            print(f"\nFile: {file_review['path']}")
-            print(file_review['review'])
-        
         
         # Post comment if requested
         if args.post_comment:
