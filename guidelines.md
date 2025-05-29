@@ -249,16 +249,12 @@ Overall, this PR provides a solid foundation for user management. The adoption o
 - **Suggestion:** N/A (No specific suggestions given the current "not needed" status).
 
 #### 15. Line-Specific Comments
-- **File: `src/main/java/com/example/util/StringUtils.java` (Line 15):**
-  - **Comment:** The `isNotNullOrEmpty` method could be simplified and made more readable using `String.isBlank()` which checks for null, empty, or whitespace-only strings, available in Java 11+.
-  - **Suggestion:**
-    ```java
-    public static boolean isNotNullOrEmpty(String text) {
-        return !text.isBlank(); // Simpler and more comprehensive
-    }
-    ```
-- **File: `src/main/java/com/example/auth/UserService.java` (Lines 60-63):**
-  - **Comment:** This block of code duplicates the password hashing logic already present in the `AuthService`. Duplication can lead to inconsistencies if the hashing algorithm needs to be updated in the future.
-  - **Suggestion:** Extract the password hashing logic into a shared utility method or a dedicated `PasswordHasher` service, and inject it where needed. This promotes the Single Responsibility Principle and improves maintainability.
+- {
+      "file":"",
+      line-start: line start in case of (Lines 60-63) it should be 60 but if it is Line 15 it should be 15, 
+      "line-end": line end in case of (Lines 60-63) it should be 60 but if it is Line 15 it should be null, 
+      "comment": Comment,
+      "suggestion":Suggestion
+   }
 
 ---
