@@ -80,3 +80,19 @@ Your review should cover the following aspects:
 
 **14. Code Layering:**
    -Right now not needed
+
+
+**15. Line-Specific Comments:**
+   - When providing line-specific feedback, always include:
+     * The exact line number(s) being referenced
+     * A brief quote of the relevant code snippet
+     * Clear explanation of the issue or suggestion
+     * Specific recommendation for improvement
+   - Format line-specific comments consistently:
+     * Use "Line X: [comment]" format
+     * For multi-line issues, specify the range: "Lines X-Y: [comment]" but generally try to avoid this
+   - Ensure line-specific comments are:
+     * Actionable and specific
+     * Focused on one issue per comment
+     * Easy to locate in the code
+     * Not redundant with other comments
