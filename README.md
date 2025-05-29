@@ -227,10 +227,29 @@ Each review report includes:
    - Potential issues
    - Line-by-line comments
 
-3. **Recommendations**
-   - Suggested improvements
-   - Code optimization tips
-   - Best practices to follow
+3. **Line-Specific Comments**
+   The tool provides detailed line-specific comments in JSON format:
+   ```json
+   [
+     {
+       "file": "path/to/file",
+       "line-start": 45,
+       "line-end": null,
+       "comment": "Detailed explanation of the issue",
+       "suggestion": "Specific suggestion for improvement"
+     }
+   ]
+   ```
+   Each comment includes:
+   - File path
+   - Line number(s)
+   - Detailed comment explaining the issue
+   - Specific suggestion for improvement
+
+4. **Platform Integration**
+   - Review results posted in PR overview section
+   - Line-specific comments posted as inline comments in the Files Changed tab
+   - Comments include both the issue description and suggested improvements
 
 ## Development
 
